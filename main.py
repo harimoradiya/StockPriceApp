@@ -1,5 +1,6 @@
 import yfinance as yf
 import streamlit as st
+import datetime
 
 st.write("""
 # Stock Price App
@@ -7,6 +8,9 @@ st.write("""
 Enter the stock symbol to see the closing price and volume!
 
 """)
+
+# Get the current date
+current_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
 # User input for stock symbol
 ticker_symbol = st.text_input('Enter Stock Symbol:')
@@ -27,7 +31,7 @@ except ValueError:
 
 try:
     # Get the historical prices for the selected ticker
-    ticker_df = ticker_data.history(period='1d', start='2018-11-29', end='2023-11-28')
+    ticker_df = ticker_data.history(period='1d', start='2018-11-29', end=current_date)
 except ValueError:
     print("error")
     
