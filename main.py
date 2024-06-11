@@ -1,31 +1,30 @@
 import datetime
 import yfinance as yf
 import streamlit as st
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import pandas as pd
 
-# Function to check if the market is open
-def is_market_open():
-    now = datetime.datetime.now()
-    market_open_time = datetime.time(9, 30)
-    market_close_time = datetime.time(16, 0)
-    return now.weekday() < 5 and market_open_time <= now.time() <= market_close_time
+st.write("""
+# Stock Price App
 
-# Initialize session state for portfolio if it doesn't exist
-if 'portfolio' not in st.session_state:
-    st.session_state.portfolio = pd.DataFrame(columns=['Symbol', 'Buying Price', 'Quantity', 'Currency', 'Current Price', 'Total Value'])
+Enter the stock symbol to see the closing price and volume!
+
+""")
+
+# User input for stock symbol
+ticker_symbol = st.text_input('Enter Stock Symbol:')
+if not ticker_symbol:
+    st.warning('Please enter a valid stock symbol.')
+    st.stop()
 
 
-# Sidebar for ticker selection
-st.sidebar.header("Stock Market Analyzer")
-ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol", value='TATASTEEL.NS').upper()
+try:
+    # Get data on the selected ticker
+    ticker_data = yf.Ticker(ticker_symbol)
+except ValueError:
+    print("Invaild Data")
+    st.warning('Please enter a valid stock symbol.')
+    st.stop()
 
-# Get the current date
-current_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
-# Fetch data for a specific ticker symbol
-ticker_data = yf.Ticker(ticker_symbol)
 
 try:
     # Get the historical prices for the selected ticker
