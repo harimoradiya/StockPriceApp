@@ -1,30 +1,31 @@
 import datetime
 import yfinance as yf
 import streamlit as st
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
 
-st.write("""
-# Stock Price App
+# Function to check if the market is open
+def is_market_open():
+    now = datetime.datetime.now()
+    market_open_time = datetime.time(9, 30)
+    market_close_time = datetime.time(16, 0)
+    return now.weekday() < 5 and market_open_time <= now.time() <= market_close_time
 
-Enter the stock symbol to see the closing price and volume!
-
-""")
-
-# User input for stock symbol
-ticker_symbol = st.text_input('Enter Stock Symbol:')
-if not ticker_symbol:
-    st.warning('Please enter a valid stock symbol.')
-    st.stop()
-
-
-try:
-    # Get data on the selected ticker
-    ticker_data = yf.Ticker(ticker_symbol)
-except ValueError:
-    print("Invaild Data")
-    st.warning('Please enter a valid stock symbol.')
-    st.stop()
+# Initialize session state for portfolio if it doesn't exist
+if 'portfolio' not in st.session_state:
+    st.session_state.portfolio = pd.DataFrame(columns=['Symbol', 'Buying Price', 'Quantity', 'Currency', 'Current Price', 'Total Value'])
 
 
+# Sidebar for ticker selection
+st.sidebar.header("Stock Market Analyzer")
+ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol", value='TATASTEEL.NS').upper()
+
+# Get the current date
+current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+
+# Fetch data for a specific ticker symbol
+ticker_data = yf.Ticker(ticker_symbol)
 
 try:
     # Get the historical prices for the selected ticker
@@ -70,7 +71,7 @@ st.line_chart(ticker_df['Open'])
 st.write("## Latest News")
 news = ticker_data.news
 print(f"news  - {news}")
-for article in news[:8]:  # Display the latest 8 news articles
+for article in news[:5]:  # Display the latest 5 news articles
     title = article['title']
     publisher = article['publisher']
     link = article['link']
@@ -94,7 +95,7 @@ st.write(f"**EPS:** {financials.get('trailingEps', 'N/A')}")
 st.write(f"**Market Cap:** {financials.get('marketCap', 'N/A')}")
 st.write(f"**Dividend Yield:** {financials.get('dividendYield', 'N/A')}")
 
-# Portfolio 
+# Portfolio Tracking (Improved UI)
 st.sidebar.write("## Portfolio Tracker")
 with st.sidebar.form(key='portfolio_form'):
     stock_symbol = st.text_input("Stock Symbol").upper()
@@ -127,7 +128,7 @@ if not st.session_state.portfolio.empty:
 else:
     st.write("No stocks in the portfolio yet.")
 
-# Alerts
+# Alerts and Notifications
 st.sidebar.write("## Set Price Alert")
 alert_price = st.sidebar.number_input("Alert if price goes below", min_value=0.0, value=100.0)
 current_price = ticker_df['Close'][-1]
